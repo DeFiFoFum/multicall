@@ -1,6 +1,6 @@
 {
   "name": "@defifofum/multicall",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "Typescript package used to batch smart contract read calls into a single tx through the use of a multicall contract.",
   "main": "dist/index.js",
   "scripts": {
