@@ -1,6 +1,6 @@
 {
   "name": "@defifofum/multicall",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "Typescript package used to batch smart contract read calls into a single tx through the use of a multicall contract.",
   "main": "dist/index.js",
   "scripts": {
@@ -47,20 +47,23 @@
   },
   "homepage": "https://github.com/DeFiFoFum/multicall#readme",
   "resolutions": {
+    "async": "^2.6.4",
     "axios": "^0.21.2",
     "marked": "4.0.10",
-    "node-forge": "^1.0.0",
+    "node-forge": "^1.3.0",
     "concat-stream": "^1.5.2",
+    "cross-fetch": "^2.2.6",
     "braces": "^2.3.1",
     "lodash.template": "^4.5.0",
-    "minimist": "^0.2.1",
+    "minimist": "^1.2.6",
     "node-fetch": "^2.6.7",
     "glob-parent": "^5.1.2",
     "yargs-parser": "^5.0.1",
     "nth-check": "2.0.1",
     "ansi-regex": "^5.0.1",
     "simple-get": "^2.8.2",
-    "follow-redirects": "^1.14.8"
+    "follow-redirects": "^1.14.8",
+    "protobufjs": "^6.11.3"
   },
   "devDependencies": {
     "@truffle/hdwallet-provider": "^2.0.0",

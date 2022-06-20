@@ -40,10 +40,12 @@ Here is an example of how to use the multicall function.
  * blockTag (optional) - Use multicall at an earlier blocknumber 
  * customMulticallAddress (optional) - Pass in a user defined multicall contract to use. If using an archive node, 
  *      the multicall contracts in this repo may have been deployed AFTER the data you are looking for.
+ * tryAggregate (optional) - Set this option to `true` to skip over failed calls
  */
 export interface MultiCallOptions {
     maxCallsPerTx?: number;
     chainId?: number;
+    tryAggregate?: boolean;
     blockTag?: BlockTag;
     customMulticallAddress?: string;
 }
@@ -82,7 +84,7 @@ export interface AbiCall {
 export async function multicallDynamicAbi(
     provider: string | providers.BaseProvider | providers.JsonRpcProvider,
     calls: AbiCall[],
-    { maxCallsPerTx = 1000, blockTag = 'latest', chainId, customMulticallAddress }: MultiCallOptions = {}
+    { maxCallsPerTx = 1000, blockTag = 'latest', tryAggregate = false, chainId, customMulticallAddress }: MultiCallOptions = {}
 ): Promise<any[][] | undefined>
 ```
 
@@ -98,7 +100,7 @@ export async function multicallDynamicAbi(
 export async function multicallDynamicAbiIndexedCalls(
     provider: string | providers.BaseProvider | providers.JsonRpcProvider,
     indexedCalls: AbiCall[][],
-    { maxCallsPerTx = 1000, blockTag = 'latest', chainId, customMulticallAddress }: MultiCallOptions = {}
+    { maxCallsPerTx = 1000, blockTag = 'latest', tryAggregate = false, chainId, customMulticallAddress }: MultiCallOptions = {}
 ): Promise<any[][] | any[]>
 ```
 
