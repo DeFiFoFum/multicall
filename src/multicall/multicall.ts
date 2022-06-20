@@ -15,10 +15,12 @@ export type BlockTag = number | 'latest' | 'earliest' | 'pending';
  * blockTag (optional) - Use multicall at an earlier blocknumber 
  * customMulticallAddress (optional) - Pass in a user defined multicall contract to use. If using an archive node, 
  *      the multicall contracts in this repo may have been deployed AFTER the data you are looking for.
+ * tryAggregate (optional) - Set this option to `true` to skip over failed calls
  */
 export interface MultiCallOptions {
     maxCallsPerTx?: number;
     chainId?: number;
+    tryAggregate?: boolean;
     blockTag?: BlockTag;
     customMulticallAddress?: string;
 }
@@ -42,7 +44,7 @@ export async function multicall(
     provider: string | providers.BaseProvider | providers.JsonRpcProvider,
     abi: (any | Fragment)[], // Abi of the call to make 
     calls: Call[],
-    { maxCallsPerTx = 1000, blockTag = 'latest', chainId, customMulticallAddress }: MultiCallOptions = {}
+    { maxCallsPerTx = 1000, blockTag = 'latest', tryAggregate = false, chainId, customMulticallAddress }: MultiCallOptions = {}
 ): Promise<any[][] | undefined> {
     // setup provider
     const currentProvider = typeof provider == 'string' ? getDefaultProvider(provider) : provider;
@@ -68,9 +70,24 @@ export async function multicall(
     let finalData: any[] = []
     for (const currentCalls of chunkedCalls) {
         const calldata = currentCalls.map((call) => [call.address.toLowerCase(), itf.encodeFunctionData(call.functionName, call.params)])
-        const { returnData } = await multicallContract.callStatic.aggregate(calldata, { blockTag });
-        const res = returnData.map((data: any, i: number) => itf.decodeFunctionResult(currentCalls[i].functionName, data))
-        finalData = [...finalData, ...res];
+
+        let parsedData;
+        if(tryAggregate) {
+            const returnData: {success: boolean, returnData: string}[] = await multicallContract.callStatic.tryAggregate(false, calldata, { blockTag });
+            parsedData = returnData.map((data, i: number) => {
+                if(data.success) {
+                    return itf.decodeFunctionResult(currentCalls[i].functionName, data.returnData)
+                } else {
+                    return undefined
+                } 
+            });
+        } else {
+            const { returnData } = await multicallContract.callStatic.aggregate(calldata, { blockTag });
+            parsedData = returnData.map((data: any, i: number) => {
+                return itf.decodeFunctionResult(currentCalls[i].functionName, data)
+            })
+        }
+        finalData = [...finalData, ...parsedData];
     }
 
     return finalData
@@ -95,7 +112,7 @@ export interface AbiCall {
 export async function multicallDynamicAbi(
     provider: string | providers.BaseProvider | providers.JsonRpcProvider,
     calls: AbiCall[],
-    { maxCallsPerTx = 1000, blockTag = 'latest', chainId, customMulticallAddress }: MultiCallOptions = {}
+    { maxCallsPerTx = 1000, blockTag = 'latest', tryAggregate = false, chainId, customMulticallAddress }: MultiCallOptions = {}
 ): Promise<any[][] | undefined> {
     // setup provider
     const currentProvider = typeof provider == 'string' ? getDefaultProvider(provider) : provider;
@@ -122,9 +139,24 @@ export async function multicallDynamicAbi(
         const currentCalls = chunkedCalls[index];
         const currentInterfaces = currentCalls.map((currentCall) => new Interface(currentCall.abi));
         const calldata = currentCalls.map((call, i) => [call.address.toLowerCase(), currentInterfaces[i].encodeFunctionData(call.functionName, call.params)]);
-        const { returnData } = await multicallContract.callStatic.aggregate(calldata, { blockTag });
-        const res = returnData.map((data: any, i: number) => currentInterfaces[i].decodeFunctionResult(currentCalls[i].functionName, data));
-        finalData = [...finalData, ...res];
+
+        let parsedData;
+        if(tryAggregate) {
+            const returnData: {success: boolean, returnData: string}[] = await multicallContract.callStatic.tryAggregate(false, calldata, { blockTag });
+            parsedData = returnData.map((data, i: number) => {
+                if(data.success) {
+                    return currentInterfaces[i].decodeFunctionResult(currentCalls[i].functionName, data.returnData)
+                } else {
+                    return undefined
+                } 
+            });
+        } else {
+            const { returnData } = await multicallContract.callStatic.aggregate(calldata, { blockTag });
+            parsedData = returnData.map((data: any, i: number) => {
+                return currentInterfaces[i].decodeFunctionResult(currentCalls[i].functionName, data)
+            });
+        }
+        finalData = [...finalData, ...parsedData];
     }
 
     return finalData
@@ -141,7 +173,7 @@ export async function multicallDynamicAbi(
 export async function multicallDynamicAbiIndexedCalls(
     provider: string | providers.BaseProvider | providers.JsonRpcProvider,
     indexedCalls: AbiCall[][],
-    { maxCallsPerTx = 1000, blockTag = 'latest', chainId, customMulticallAddress }: MultiCallOptions = {}
+    { maxCallsPerTx = 1000, blockTag = 'latest', tryAggregate = false, chainId, customMulticallAddress }: MultiCallOptions = {}
 ): Promise<any[][] | any[]> {
     // setup provider
     const currentProvider = typeof provider == 'string' ? getDefaultProvider(provider) : provider;
@@ -156,6 +188,7 @@ export async function multicallDynamicAbiIndexedCalls(
     const multicallData = await multicallDynamicAbi(currentProvider, allCalls, {
         maxCallsPerTx,
         chainId: currentChainId,
+        tryAggregate,
         blockTag,
         customMulticallAddress,
     });
