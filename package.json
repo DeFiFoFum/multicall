@@ -3,6 +3,9 @@
   "version": "1.1.1",
   "description": "Typescript package used to batch smart contract read calls into a single tx through the use of a multicall contract.",
   "main": "dist/index.js",
+  "files": [
+    "dist/"
+  ],
   "scripts": {
     "test": "yarn test",
     "compile": "truffle compile",
