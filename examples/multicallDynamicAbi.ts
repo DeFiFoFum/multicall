@@ -1,5 +1,5 @@
-// import { multicallDynamicAbi, AbiCall } from '@defifofum/multicall';
-const { multicallDynamicAbi, multicallDynamicAbiIndexedCalls } = require('../dist/index')
+// import { AbiCall, Call, multicallDynamicAbi , multicallDynamicAbiIndexedCalls } from '@defifofum/multicall';
+import { AbiCall, Call, multicallDynamicAbi, multicallDynamicAbiIndexedCalls } from '../dist/index'
 import { getDefaultProvider, utils } from 'ethers'
 
 const RPC_PROVIDER = 'https://bsc-dataseed.binance.org/';
@@ -37,13 +37,8 @@ const ABIs = {
     )],
 }
 
-interface CallData {
-    functionName: string,
-    address: string,
-    params: any[]
-}
 
-const calls: CallData[] = [
+const calls: Call[] = [
     {
         functionName: 'getStakeTokenFeeBalance',
         address: '0x5798271B134e27c4dE28CB33aa8D18e5753e83fC',
@@ -97,7 +92,7 @@ const calls: CallData[] = [
 ]
 
 async function runExampleMulticallDynamicAbi() {
-    let expandedCalls: CallData[] = [];
+    let expandedCalls: Call[] = [];
     for (let index = 0; index < 500; index++) {
         expandedCalls = [...expandedCalls, ...calls];
     }
